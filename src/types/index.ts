@@ -1,4 +1,6 @@
 
+import { IndianState } from './location';
+
 export type IssueStatus = 'reported' | 'in-progress' | 'resolved' | 'closed';
 
 export type IssuePriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -16,6 +18,11 @@ export interface GeoLocation {
   lat: number;
   lng: number;
   address?: string;
+  state?: IndianState;
+  district?: string;
+  city?: string;
+  village?: string;
+  pincode?: string;
 }
 
 export interface Issue {

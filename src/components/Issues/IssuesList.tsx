@@ -1,11 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Issue, IssueCategory, IssueStatus, IssuePriority } from "@/types";
 import IssueCard from "./IssueCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { categoryOptions, statusOptions, priorityOptions } from "@/data/mockData";
+import { indianStates, districtsByState, citiesByDistrict, villagesByDistrict } from "@/data/indiaLocations";
+import { IndianState } from "@/types/location";
+import { MapPin } from "lucide-react";
 
 interface IssuesListProps {
   issues: Issue[];
@@ -18,6 +21,53 @@ const IssuesList = ({ issues }: IssuesListProps) => {
   const [priorityFilter, setPriorityFilter] = useState<IssuePriority | "all">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "upvotes">("newest");
 
+  // Location filters
+  const [stateFilter, setStateFilter] = useState<IndianState | "all">("all");
+  const [districtFilter, setDistrictFilter] = useState<string | "all">("all");
+  const [cityFilter, setCityFilter] = useState<string | "all">("all");
+  const [villageFilter, setVillageFilter] = useState<string | "all">("all");
+  
+  // Available districts based on selected state
+  const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [availableVillages, setAvailableVillages] = useState<string[]>([]);
+
+  // Update available districts when state changes
+  useEffect(() => {
+    if (stateFilter !== "all") {
+      setAvailableDistricts(districtsByState[stateFilter] || []);
+      setDistrictFilter("all");
+      setCityFilter("all");
+      setVillageFilter("all");
+    } else {
+      setAvailableDistricts([]);
+      setDistrictFilter("all");
+    }
+  }, [stateFilter]);
+
+  // Update available cities when district changes
+  useEffect(() => {
+    if (districtFilter !== "all") {
+      setAvailableCities(citiesByDistrict[districtFilter] || []);
+      setCityFilter("all");
+      setVillageFilter("all");
+    } else {
+      setAvailableCities([]);
+      setCityFilter("all");
+    }
+  }, [districtFilter]);
+
+  // Update available villages when district changes
+  useEffect(() => {
+    if (districtFilter !== "all") {
+      setAvailableVillages(villagesByDistrict[districtFilter] || []);
+      setVillageFilter("all");
+    } else {
+      setAvailableVillages([]);
+      setVillageFilter("all");
+    }
+  }, [districtFilter]);
+
   const filteredIssues = issues.filter(issue => {
     const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           issue.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -25,7 +75,14 @@ const IssuesList = ({ issues }: IssuesListProps) => {
     const matchesStatus = statusFilter === "all" || issue.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || issue.priority === priorityFilter;
     
-    return matchesSearch && matchesCategory && matchesStatus && matchesPriority;
+    // Location filtering
+    const matchesState = stateFilter === "all" || issue.location.state === stateFilter;
+    const matchesDistrict = districtFilter === "all" || issue.location.district === districtFilter;
+    const matchesCity = cityFilter === "all" || issue.location.city === cityFilter;
+    const matchesVillage = villageFilter === "all" || issue.location.village === villageFilter;
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesPriority && 
+           matchesState && matchesDistrict && matchesCity && matchesVillage;
   });
 
   const sortedIssues = [...filteredIssues].sort((a, b) => {
@@ -127,6 +184,99 @@ const IssuesList = ({ issues }: IssuesListProps) => {
               <SelectItem value="upvotes">Most Upvotes</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+      
+      {/* Location filters section */}
+      <div className="bg-[#FFF5E6] p-4 rounded-lg mb-6">
+        <div className="flex items-center mb-4">
+          <MapPin className="h-5 w-5 text-[#FF7722] mr-2" />
+          <h3 className="text-lg font-semibold text-[#1E3A4F]">Location Filters</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <Label htmlFor="state">State</Label>
+            <Select
+              value={stateFilter}
+              onValueChange={(value) => setStateFilter(value as IndianState | "all")}
+            >
+              <SelectTrigger id="state">
+                <SelectValue placeholder="All States" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All States</SelectItem>
+                {indianStates.map((state) => (
+                  <SelectItem key={state.value} value={state.value}>
+                    {state.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="district">District</Label>
+            <Select
+              value={districtFilter}
+              onValueChange={(value) => setDistrictFilter(value)}
+              disabled={stateFilter === "all"}
+            >
+              <SelectTrigger id="district">
+                <SelectValue placeholder={stateFilter === "all" ? "Select State First" : "All Districts"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Districts</SelectItem>
+                {availableDistricts.map((district) => (
+                  <SelectItem key={district} value={district}>
+                    {district}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="city">City</Label>
+            <Select
+              value={cityFilter}
+              onValueChange={(value) => setCityFilter(value)}
+              disabled={districtFilter === "all" || availableCities.length === 0}
+            >
+              <SelectTrigger id="city">
+                <SelectValue placeholder={districtFilter === "all" ? "Select District First" : "All Cities"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {availableCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="village">Village</Label>
+            <Select
+              value={villageFilter}
+              onValueChange={(value) => setVillageFilter(value)}
+              disabled={districtFilter === "all" || availableVillages.length === 0}
+            >
+              <SelectTrigger id="village">
+                <SelectValue placeholder={districtFilter === "all" ? "Select District First" : "All Villages"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Villages</SelectItem>
+                {availableVillages.map((village) => (
+                  <SelectItem key={village} value={village}>
+                    {village}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

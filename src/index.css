@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 39 100% 97%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -14,10 +14,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 201 100% 51%;
+    --primary: 25 100% 56%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 160 84% 39%;
+    --secondary: 142 76% 36%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
@@ -31,7 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 201 100% 51%;
+    --ring: 25 100% 56%;
 
     --radius: 0.5rem;
 
@@ -55,10 +55,10 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 201 100% 51%;
+    --primary: 25 100% 56%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 160 84% 39%;
+    --secondary: 142 76% 36%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
@@ -72,7 +72,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 201 100% 51%;
+    --ring: 25 100% 56%;
     
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
@@ -103,5 +103,26 @@
   
   .report-card {
     @apply bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300;
+  }
+
+  /* Indian flag inspired styles */
+  .india-saffron {
+    @apply bg-[#FF9933] text-white;
+  }
+  
+  .india-white {
+    @apply bg-white text-[#1E3A4F];
+  }
+  
+  .india-green {
+    @apply bg-[#138808] text-white;
+  }
+  
+  .india-blue {
+    @apply text-[#0000CD];
+  }
+
+  .india-gradient {
+    @apply bg-gradient-to-r from-[#FF9933] via-white to-[#138808];
   }
 }
