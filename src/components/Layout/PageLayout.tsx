@@ -9,6 +9,11 @@ interface PageLayoutProps {
 }
 
 const PageLayout = ({ children, className = "" }: PageLayoutProps) => {
+  // Update the document title dynamically
+  React.useEffect(() => {
+    document.title = "BOL BHARAT";
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

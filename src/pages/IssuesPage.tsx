@@ -8,7 +8,7 @@ const IssuesPage = () => {
     <PageLayout>
       <div className="civic-container py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Community Issues</h1>
+          <h1 className="text-3xl font-bold mb-2">Community Issues - BOL BHARAT</h1>
           <p className="text-gray-600">
             Browse, filter, and find the latest reported issues in your community.
           </p>
