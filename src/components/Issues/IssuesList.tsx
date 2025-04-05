@@ -45,6 +45,16 @@ const IssuesList = () => {
         let formattedIssues: Issue[] = [];
         if (data) {
           formattedIssues = Object.entries(data).map(([id, issueData]: [string, any]) => {
+            // Determine state based on location string
+            let state: IndianState = "Unknown";
+            const location = issueData.location || '';
+            
+            if (location.includes("Baramati") || location.includes("Pune")) {
+              state = "Maharashtra";
+            } else if (location.includes("Mumbai")) {
+              state = "Maharashtra";
+            }
+            
             // Convert Firebase format to our app format
             return {
               id,
@@ -56,11 +66,15 @@ const IssuesList = () => {
               location: {
                 lat: 0,
                 lng: 0,
-                address: issueData.location || '',
-                state: '',
-                district: '',
-                city: '',
-                village: ''
+                address: location,
+                state: state,
+                district: location.includes("Baramati") ? "Pune" : 
+                         location.includes("Pune") ? "Pune" : 
+                         location.includes("Mumbai") ? "Mumbai" : "",
+                city: location.includes("Baramati") ? "Baramati" : 
+                      location.includes("Pune") ? "Pune" : 
+                      location.includes("Mumbai") ? "Mumbai" : "",
+                village: ""
               },
               reportedBy: 'user1',
               reportedAt: new Date(issueData.timestamp || Date.now()),
