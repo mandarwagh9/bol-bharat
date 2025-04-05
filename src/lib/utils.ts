@@ -7,7 +7,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAUKVVAbPolZL0MpT0NptJ5ik39_Je3ee4", // Fallback value
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bolbharat-a24dc", // Fallback value
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
