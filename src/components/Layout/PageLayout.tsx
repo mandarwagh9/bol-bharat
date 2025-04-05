@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -10,7 +10,7 @@ interface PageLayoutProps {
 
 const PageLayout = ({ children, className = "" }: PageLayoutProps) => {
   // Update the document title dynamically
-  React.useEffect(() => {
+  useEffect(() => {
     document.title = "BOL BHARAT";
   }, []);
 
