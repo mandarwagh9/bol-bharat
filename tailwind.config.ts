@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Civic issue reporting specific colors
+				civic: {
+					blue: '#1E88E5',
+					green: '#43A047',
+					yellow: '#FDD835',
+					red: '#E53935',
+					teal: '#26A69A',
+					light: '#F5F7FA',
+					dark: '#2A3B4C'
 				}
 			},
 			borderRadius: {
