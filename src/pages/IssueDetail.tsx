@@ -1,16 +1,218 @@
-
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { mockIssues, statusOptions, priorityOptions, categoryOptions } from "@/data/mockData";
 import PageLayout from "@/components/Layout/PageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
-import { MapPin, Clock, ThumbsUp, ArrowLeft, Calendar } from "lucide-react";
+import { MapPin, Clock, ThumbsUp, ArrowLeft, Calendar, Share2 } from "lucide-react";
+import { Issue } from "@/types";
+import { toast } from "@/components/ui/use-toast";
+import { onValue, ref } from "firebase/database"; // Import Firebase listener
+import { db } from "@/lib/utils"; // Import Firebase database instance
 
 const IssueDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const issue = mockIssues.find(issue => issue.id === id);
+  const [issue, setIssue] = useState<Issue | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [hasSupported, setHasSupported] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check local storage to see if user has already supported this issue
+    const supportedIssues = JSON.parse(localStorage.getItem('supportedIssues') || '[]');
+    setHasSupported(supportedIssues.includes(id));
+    
+    const fetchIssue = async () => {
+      setLoading(true);
+      
+      // First check if it's a mock issue
+      const mockIssue = mockIssues.find(issue => issue.id === id);
+      if (mockIssue) {
+        setIssue(mockIssue);
+        setLoading(false);
+        return;
+      }
+      
+      // If not found in mock data, try to fetch from Firebase
+      try {
+        const response = await fetch(`https://bolbharat-a24dc-default-rtdb.firebaseio.com/issues/${id}.json`);
+        const data = await response.json();
+        
+        if (data) {
+          // Convert Firebase format to our app format
+          const formattedIssue: Issue = {
+            id: id || '',
+            title: data.title || '',
+            description: data.description || '',
+            category: data.category || 'other',
+            status: data.status || 'reported',
+            priority: data.priority || 'medium',
+            location: {
+              lat: 0,
+              lng: 0,
+              address: data.location || '',
+              state: '',
+              district: '',
+              city: '',
+              village: ''
+            },
+            reportedBy: 'user1',
+            reportedAt: new Date(data.timestamp || Date.now()),
+            images: data.image ? [data.image] : [],
+            duration: data.duration || '',
+            upvotes: data.upvotes || 0,
+            comments: []
+          };
+          
+          setIssue(formattedIssue);
+        } else {
+          setIssue(null);
+        }
+      } catch (error) {
+        console.error('Error fetching issue:', error);
+        setIssue(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchIssue();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const upvotesRef = ref(db, `issues/${id}/upvotes`); // Use the imported db instance
+
+    const unsubscribe = onValue(upvotesRef, (snapshot) => {
+      const newUpvotes = snapshot.val();
+      if (newUpvotes !== null) {
+        setIssue((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            upvotes: newUpvotes,
+          };
+        });
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, [id]);
+
+  const handleSupport = async () => {
+    if (!issue) return;
+    
+    if (hasSupported) {
+      toast({
+        title: "Already Supported",
+        description: "You have already supported this issue.",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    try {
+      // For mock issues, just update the local state
+      if (mockIssues.some(mockIssue => mockIssue.id === id)) {
+        setIssue(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            upvotes: prev.upvotes + 1
+          };
+        });
+      } else {
+        // For Firebase issues, update the database
+        const currentUpvotes = issue.upvotes || 0;
+        const newUpvotes = currentUpvotes + 1;
+        
+        await fetch(`https://bolbharat-a24dc-default-rtdb.firebaseio.com/issues/${id}/upvotes.json`, {
+          method: 'PUT',
+          body: JSON.stringify(newUpvotes)
+        });
+        
+        // Update local state
+        setIssue(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            upvotes: newUpvotes
+          };
+        });
+      }
+      
+      // Save to localStorage to prevent multiple supports
+      const supportedIssues = JSON.parse(localStorage.getItem('supportedIssues') || '[]');
+      supportedIssues.push(id);
+      localStorage.setItem('supportedIssues', JSON.stringify(supportedIssues));
+      setHasSupported(true);
+      
+      toast({
+        title: "Thank You!",
+        description: "Your support has been recorded.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error supporting issue:', error);
+      toast({
+        title: "Error",
+        description: "Failed to support this issue. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!issue) return;
+    
+    const shareData = {
+      title: `BolBharat - ${issue.title}`,
+      text: `Check out this civic issue: ${issue.title} - ${issue.description}`,
+      url: window.location.href,
+    };
+    
+    try {
+      if (navigator.share) {
+        // Use the Web Share API if available
+        await navigator.share(shareData);
+        toast({
+          title: "Shared Successfully",
+          description: "Thank you for spreading awareness!",
+          duration: 3000,
+        });
+      } else {
+        // Fallback to copy to clipboard
+        await navigator.clipboard.writeText(shareData.url);
+        toast({
+          title: "Link Copied to Clipboard",
+          description: "You can now paste and share it anywhere.",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: "Error",
+        description: "Failed to share this issue. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+  
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="civic-container py-16 text-center">
+          <h1 className="text-3xl font-bold mb-4">Loading...</h1>
+        </div>
+      </PageLayout>
+    );
+  }
   
   if (!issue) {
     return (
@@ -128,11 +330,19 @@ const IssueDetail = () => {
             </Card>
             
             <div className="flex gap-3">
-              <Button className="flex-1 bg-civic-blue hover:bg-civic-blue/90">
+              <Button 
+                className={`flex-1 ${hasSupported ? 'bg-gray-400 hover:bg-gray-500' : 'bg-civic-blue hover:bg-civic-blue/90'}`}
+                onClick={handleSupport}
+              >
                 <ThumbsUp className="h-4 w-4 mr-2" />
-                Support
+                {hasSupported ? 'Supported' : 'Support'}
               </Button>
-              <Button variant="outline" className="flex-1">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={handleShare}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
             </div>

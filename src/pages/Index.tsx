@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +15,7 @@ const Index = () => {
   return (
     <PageLayout className="pb-0">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-civic-blue to-civic-teal text-white py-16 md:py-24">
+      <section className="bg-gradient-to-r from-[#FF7722] to-[#FF7722] text-white py-16 md:py-24">
         <div className="civic-container">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="text-center md:text-left">
@@ -26,17 +25,15 @@ const Index = () => {
               <p className="text-lg md:text-xl mb-8 text-white/90">
                 Help your local government identify and resolve issues faster with our easy-to-use reporting platform.
               </p>
+              {/* Ensure buttons are visible and styled correctly */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Button asChild size="lg" className="bg-white text-civic-blue hover:bg-white/90">
-                  <Link to="/report">Report an Issue</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  <Link to="/issues">View Issues</Link>
+                <Button asChild size="lg" className="bg-white text-civic-blue hover:bg-white/90 shadow-md font-bold">
+                  <Link to="/report" className="w-full">Report an Issue</Link>
                 </Button>
               </div>
             </div>
             <div className="hidden md:block">
-              <img src="/placeholder.svg" alt="Community reporting" className="w-full max-w-lg mx-auto rounded-lg shadow-lg" />
+              <img src="/logo-hindi.png" alt="Community reporting" className="w-full max-w-lg mx-auto rounded-lg shadow-lg" />
             </div>
           </div>
         </div>
@@ -91,8 +88,8 @@ const Index = () => {
           </div>
 
           <div className="text-center mt-12">
-            <Button asChild className="bg-civic-blue hover:bg-civic-blue/90">
-              <Link to="/report">Report an Issue Now</Link>
+            <Button asChild size="lg" className="bg-civic-blue hover:bg-civic-blue/90 font-bold shadow-md">
+              <Link to="/report" className="px-6">Report an Issue Now</Link>
             </Button>
           </div>
         </div>
@@ -103,7 +100,7 @@ const Index = () => {
         <div className="civic-container">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Recent Reports</h2>
-            <Button asChild variant="outline" className="group">
+            <Button asChild variant="outline" className="group border-civic-blue text-civic-blue hover:bg-civic-blue/10">
               <Link to="/issues" className="flex items-center">
                 View All
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

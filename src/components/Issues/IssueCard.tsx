@@ -1,10 +1,10 @@
-
 import { Link } from "react-router-dom";
 import { Issue } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { statusOptions, priorityOptions, categoryOptions } from "@/data/mockData";
 import { format } from "date-fns";
 import { MapPin, Clock, ThumbsUp } from "lucide-react";
+import React from 'react';
 
 interface IssueCardProps {
   issue: Issue;
@@ -49,7 +49,9 @@ const IssueCard = ({ issue }: IssueCardProps) => {
           
           <div className="mt-2 flex items-center text-sm text-gray-500">
             <Clock className="h-4 w-4 mr-1" />
-            <span>Reported: {format(new Date(issue.reportedAt), 'MMM d, yyyy')}</span>
+            <span>
+              Reported: {isNaN(new Date(issue.reportedAt).getTime()) ? "Invalid date" : format(new Date(issue.reportedAt), 'MMM d, yyyy')}
+            </span>
           </div>
 
           <p className="mt-2 text-gray-600 line-clamp-2">{issue.description}</p>

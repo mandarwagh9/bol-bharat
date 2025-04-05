@@ -1,4 +1,3 @@
-
 import PageLayout from "@/components/Layout/PageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ const AboutPage = () => {
     <PageLayout>
       <div className="civic-container py-8">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-4">About StreetScribe</h1>
+          <h1 className="text-4xl font-bold mb-4">About BolBharat</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Empowering citizens to take an active role in improving their communities
           </p>
@@ -19,7 +18,7 @@ const AboutPage = () => {
           <div>
             <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
             <p className="text-gray-700 mb-4">
-              StreetScribe was created to bridge the gap between citizens and local governments. We believe that the people who live in a community are best positioned to identify issues that need attention.
+              BolBharat was created to bridge the gap between citizens and local governments. We believe that the people who live in a community are best positioned to identify issues that need attention.
             </p>
             <p className="text-gray-700 mb-4">
               Our platform makes it easy for residents to report problems like potholes, broken streetlights, garbage, graffiti, and other issues that affect quality of life and public safety.
@@ -30,7 +29,7 @@ const AboutPage = () => {
           </div>
           <div className="flex justify-center">
             <img 
-              src="/placeholder.svg" 
+              src="/public/logo-hindi.png" 
               alt="Community collaboration" 
               className="rounded-lg shadow-lg max-w-md w-full"
             />
@@ -39,7 +38,7 @@ const AboutPage = () => {
         
         <Card className="mb-16 bg-civic-light">
           <CardContent className="pt-6">
-            <h2 className="text-2xl font-bold mb-6 text-center">How StreetScribe Works</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">How BolBharat Works</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
@@ -70,7 +69,7 @@ const AboutPage = () => {
         </Card>
         
         <div className="text-center mb-16">
-          <h2 className="text-2xl font-bold mb-6">Why Use StreetScribe?</h2>
+          <h2 className="text-2xl font-bold mb-6">Why Use BolBharat?</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
@@ -114,7 +113,7 @@ const AboutPage = () => {
         <div className="bg-civic-blue rounded-lg p-8 text-white text-center">
           <h2 className="text-2xl font-bold mb-4">Ready to Make a Difference?</h2>
           <p className="text-xl mb-6">
-            Join thousands of community members who are using StreetScribe to create positive change.
+            Join thousands of community members who are using BolBharat to create positive change.
           </p>
           <Button asChild size="lg" className="bg-white text-civic-blue hover:bg-white/90">
             <Link to="/report">Report an Issue Now</Link>

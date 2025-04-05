@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MapPin, Menu } from "lucide-react";
@@ -15,7 +14,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/e17d1cb2-47cc-4488-b8d1-2527a61f7a46.png" 
+              src="/logo.png" 
               alt="BOL BHARAT Logo" 
               className="h-10 w-auto" 
             />
@@ -37,28 +36,28 @@ const Navbar = () => {
                 <div className="absolute top-full left-0 right-0 bg-[#FFF5E6] shadow-md p-4 flex flex-col space-y-4 md:hidden">
                   <Link 
                     to="/" 
-                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors"
+                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Home
                   </Link>
                   <Link 
                     to="/issues" 
-                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors"
+                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     View Issues
                   </Link>
                   <Link 
                     to="/map" 
-                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors"
+                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Map View
                   </Link>
                   <Link 
                     to="/about" 
-                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors"
+                    className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     About
@@ -75,16 +74,16 @@ const Navbar = () => {
             </>
           ) : (
             <div className="hidden md:flex items-center space-x-6">
-              <Link to="/" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors">
+              <Link to="/" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium">
                 Home
               </Link>
-              <Link to="/issues" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors">
+              <Link to="/issues" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium">
                 View Issues
               </Link>
-              <Link to="/map" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors">
+              <Link to="/map" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium">
                 Map View
               </Link>
-              <Link to="/about" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors">
+              <Link to="/about" className="text-[#1E3A4F] hover:text-[#FF7722] transition-colors font-medium">
                 About
               </Link>
             </div>

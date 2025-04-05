@@ -1,20 +1,18 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Issue, IssueCategory, IssueStatus, IssuePriority } from "@/types";
 import IssueCard from "./IssueCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categoryOptions, statusOptions, priorityOptions } from "@/data/mockData";
+import { categoryOptions, statusOptions, priorityOptions, mockIssues } from "@/data/mockData";
 import { indianStates, districtsByState, citiesByDistrict, villagesByDistrict } from "@/data/indiaLocations";
 import { IndianState } from "@/types/location";
 import { MapPin } from "lucide-react";
 
-interface IssuesListProps {
-  issues: Issue[];
-}
-
-const IssuesList = ({ issues }: IssuesListProps) => {
+const IssuesList = () => {
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<IssueCategory | "all">("all");
   const [statusFilter, setStatusFilter] = useState<IssueStatus | "all">("all");
@@ -31,6 +29,61 @@ const IssuesList = ({ issues }: IssuesListProps) => {
   const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [availableVillages, setAvailableVillages] = useState<string[]>([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        // Fetch real data from Firebase
+        const response = await fetch('https://bolbharat-a24dc-default-rtdb.firebaseio.com/issues.json');
+        const data = await response.json();
+        
+        // Process real data
+        let formattedIssues: Issue[] = [];
+        if (data) {
+          formattedIssues = Object.entries(data).map(([id, issueData]: [string, any]) => {
+            // Convert Firebase format to our app format
+            return {
+              id,
+              title: issueData.title || '',
+              description: issueData.description || '',
+              category: issueData.category || 'other',
+              status: issueData.status || 'reported',
+              priority: issueData.priority || 'medium',
+              location: {
+                lat: 0,
+                lng: 0,
+                address: issueData.location || '',
+                state: '',
+                district: '',
+                city: '',
+                village: ''
+              },
+              reportedBy: 'user1',
+              reportedAt: new Date(issueData.timestamp || Date.now()),
+              images: issueData.image ? [issueData.image] : [],
+              duration: issueData.duration || '',
+              upvotes: 0,
+              comments: []
+            };
+          });
+        }
+        
+        // Add mock data to the list
+        const combinedIssues = [...formattedIssues, ...mockIssues];
+        setIssues(combinedIssues);
+      } catch (error) {
+        console.error('Error fetching issues:', error);
+        // If fetch fails, at least show mock data
+        setIssues(mockIssues);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, []);
 
   // Update available districts when state changes
   useEffect(() => {
@@ -94,6 +147,19 @@ const IssuesList = ({ issues }: IssuesListProps) => {
       return b.upvotes - a.upvotes;
     }
   });
+
+  const handleIssueClick = (id: string) => {
+    const issueExists = issues.some((issue) => issue.id === id);
+    if (!issueExists) {
+      alert('The issue has been deleted.');
+    } else {
+      navigate(`/issues/${id}`);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading issues...</div>;
+  }
 
   return (
     <div>
@@ -288,7 +354,9 @@ const IssuesList = ({ issues }: IssuesListProps) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedIssues.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} />
+            <div key={issue.id} onClick={() => handleIssueClick(issue.id)}>
+              <IssueCard issue={issue} />
+            </div>
           ))}
         </div>
       )}

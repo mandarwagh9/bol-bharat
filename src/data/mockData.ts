@@ -1,5 +1,6 @@
-
 import { Issue, IssueCategory, IssuePriority, IssueStatus } from "@/types";
+import { ref, get } from "firebase/database";
+import { db } from "../lib/utils";
 
 // Mock data for development
 export const mockIssues: Issue[] = [
@@ -100,6 +101,17 @@ export const mockIssues: Issue[] = [
   }
 ];
 
+export async function fetchIssues() {
+  const issuesRef = ref(db, "issues");
+  const snapshot = await get(issuesRef);
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    return Array.isArray(data) ? data : Object.values(data);
+  } else {
+    return [];
+  }
+}
+
 export const categoryOptions: { value: IssueCategory; label: string }[] = [
   { value: "roads", label: "Roads & Sidewalks" },
   { value: "water", label: "Water Services" },
@@ -134,3 +146,34 @@ export const durationOptions: string[] = [
   "3-6 months",
   "More than 6 months"
 ];
+
+// Dummy issues added to Firebase Realtime Database JSON structure for testing purposes
+const dummyIssues = {
+  "-ON3e4CmbyD4FWYszkbC": {
+    "category": "roads",
+    "description": "Potholes causing inconvenience to commuters.",
+    "duration": "4-7 days",
+    "image": "lovable-uploads/8316e3e4-2d31-4954-9239-ca4fa46be0cc.png",
+    "location": "Bhigwan Road, Baramati",
+    "timestamp": "2025-04-05T06:34:22.443Z",
+    "title": "Potholes on Bhigwan Road"
+  },
+  "-ON3e4CmbyD4FWYszkbD": {
+    "category": "sanitation",
+    "description": "Overflowing garbage bins in the area.",
+    "duration": "2-3 days",
+    "image": "lovable-uploads/e17d1cb2-47cc-4488-b8d1-2527a61f7a46.png",
+    "location": "Market Street, Pune",
+    "timestamp": "2025-04-04T10:15:00.000Z",
+    "title": "Garbage Overflow in Market Street"
+  },
+  "-ON3e4CmbyD4FWYszkbE": {
+    "category": "electricity",
+    "description": "Streetlights not working for the past week.",
+    "duration": "7+ days",
+    "image": "",
+    "location": "MG Road, Mumbai",
+    "timestamp": "2025-04-03T18:45:00.000Z",
+    "title": "Non-functional Streetlights on MG Road"
+  }
+};

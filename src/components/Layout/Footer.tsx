@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 
@@ -10,7 +9,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="flex items-center space-x-2">
               <MapPin className="h-6 w-6 text-civic-teal" />
-              <span className="text-xl font-bold">StreetScribe</span>
+              <span className="text-xl font-bold">BolBharat</span>
             </Link>
             <p className="mt-4 text-gray-300">
               Empowering citizens to report and track civic issues for a better community.
@@ -72,7 +71,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>Email: info@streetscribe.org</li>
+              <li>Email: info@bolbharat.org</li>
               <li>Phone: (123) 456-7890</li>
               <li>Address: 123 Civic Center Blvd, Anytown, USA</li>
             </ul>
@@ -80,7 +79,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} StreetScribe. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} BolBharat. All rights reserved.</p>
         </div>
       </div>
     </footer>

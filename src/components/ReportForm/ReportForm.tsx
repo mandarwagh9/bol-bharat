@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +10,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Camera, MapPin, Clock, Upload, Trash2 } from "lucide-react";
 import { categoryOptions, durationOptions } from "@/data/mockData";
 import { IssueCategory } from "@/types";
+import { getDatabase, ref, push } from "firebase/database";
+import { db } from "@/lib/utils";
+
+const reportIssue = async (issueDetails: any) => {
+  const issuesRef = ref(db, "issues");
+  return await push(issuesRef, issueDetails);
+};
 
 const ReportForm = () => {
   const navigate = useNavigate();
@@ -39,7 +45,7 @@ const ReportForm = () => {
     setImage(null);
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title || !description || !category || !location || !duration) {
@@ -53,17 +59,32 @@ const ReportForm = () => {
     
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // Mock success
+    const issueDetails = {
+      title,
+      description,
+      category,
+      location,
+      duration,
+      image,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await reportIssue(issueDetails);
       toast({
         title: "Issue Reported!",
         description: "Your issue has been successfully reported.",
       });
-      
-      setLoading(false);
       navigate("/issues");
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to report the issue. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
