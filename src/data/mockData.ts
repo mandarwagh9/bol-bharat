@@ -55,7 +55,7 @@ const dummyIssues = {
     "category": "roads",
     "description": "Potholes causing inconvenience to commuters.",
     "duration": "4-7 days",
-    "image": "lovable-uploads/8316e3e4-2d31-4954-9239-ca4fa46be0cc.png",
+    "image": "https://c.files.bbci.co.uk/97DE/production/_132287883_potholes.jpg",
     "location": "Bhigwan Road, Baramati",
     "timestamp": "2025-04-05T06:34:22.443Z",
     "title": "Potholes on Bhigwan Road"
@@ -64,7 +64,7 @@ const dummyIssues = {
     "category": "sanitation",
     "description": "Overflowing garbage bins in the area.",
     "duration": "2-3 days",
-    "image": "lovable-uploads/e17d1cb2-47cc-4488-b8d1-2527a61f7a46.png",
+    "image": "https://www.newagebd.com/files/records/news/202307/207434_186.jpg",
     "location": "Market Street, Pune",
     "timestamp": "2025-04-04T10:15:00.000Z",
     "title": "Garbage Overflow in Market Street"
@@ -73,7 +73,7 @@ const dummyIssues = {
     "category": "electricity",
     "description": "Streetlights not working for the past week.",
     "duration": "7+ days",
-    "image": "",
+    "image": "https://media.istockphoto.com/id/1076480852/photo/broken-street-lamp-in-city.jpg?s=612x612&w=0&k=20&c=MKylMMDuFgkXy7uUYog7oo7aQQ5ATyBqemfopYHYsKc=",
     "location": "MG Road, Mumbai",
     "timestamp": "2025-04-03T18:45:00.000Z",
     "title": "Non-functional Streetlights on MG Road"
