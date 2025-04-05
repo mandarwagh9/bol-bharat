@@ -71,9 +71,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>Email: info@bolbharat.org</li>
-              <li>Phone: (123) 456-7890</li>
-              <li>Address: 123 Civic Center Blvd, Anytown, USA</li>
+              <li>Email: mandarawagh90@gmail.com</li>
+              <li>Phone: +91 9604524079</li>
+              <li>Address: CESA FY</li>
             </ul>
           </div>
         </div>
