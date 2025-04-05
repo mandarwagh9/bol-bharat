@@ -3,12 +3,60 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/Layout/PageLayout";
 import IssueCard from "@/components/Issues/IssueCard";
-import { mockIssues } from "@/data/mockData";
+import { fetchIssues } from "@/data/mockData";
 import { MapPin, Camera, Clock, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Issue } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getIssues = async () => {
+      try {
+        setLoading(true);
+        const fetchedIssues = await fetchIssues();
+        
+        // Convert fetched issues to match our Issue type
+        const formattedIssues = fetchedIssues.map((issue: any, index: number) => {
+          const id = issue.id || Object.keys(fetchedIssues)[index];
+          return {
+            id: id,
+            title: issue.title,
+            description: issue.description,
+            category: issue.category,
+            status: issue.status || "reported", // Default status
+            priority: issue.priority || "medium", // Default priority
+            location: {
+              lat: 0, // Default coordinates
+              lng: 0,
+              address: issue.location
+            },
+            reportedBy: issue.reportedBy || "anonymous",
+            reportedAt: new Date(issue.timestamp || Date.now()),
+            // Fix image paths by removing the leading slash
+            images: issue.image ? [issue.image] : ["placeholder.svg"],
+            duration: issue.duration || "Unknown",
+            upvotes: issue.upvotes || 0,
+            comments: []
+          };
+        });
+        
+        setIssues(formattedIssues);
+      } catch (error) {
+        console.error("Error fetching issues:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    getIssues();
+  }, []);
+
   // Get 3 recent issues for the preview section
-  const recentIssues = [...mockIssues].sort(
+  const recentIssues = [...issues].sort(
     (a, b) => new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime()
   ).slice(0, 3);
 
@@ -109,9 +157,31 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {recentIssues.map((issue) => (
-              <IssueCard key={issue.id} issue={issue} />
-            ))}
+            {loading ? (
+              // Loading skeletons
+              Array(3).fill(0).map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
+                  <CardContent className="p-4">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-4/5 mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : recentIssues.length > 0 ? (
+              recentIssues.map((issue) => (
+                <IssueCard key={issue.id} issue={issue} />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-8">
+                <p className="text-gray-500">No issues reported yet. Be the first to report an issue!</p>
+                <Button asChild className="mt-4 bg-civic-blue hover:bg-civic-blue/90">
+                  <Link to="/report">Report an Issue</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </section>

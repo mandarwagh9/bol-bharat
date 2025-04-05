@@ -15,9 +15,23 @@ const IssueCard = ({ issue }: IssueCardProps) => {
   const priorityOption = priorityOptions.find(p => p.value === issue.priority);
   const categoryOption = categoryOptions.find(c => c.value === issue.category);
 
+  // Safely format date - handles both Date objects and string dates
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return "Unknown date";
+    try {
+      return format(new Date(date), 'MMM d, yyyy');
+    } catch (e) {
+      return "Invalid date";
+    }
+  };
+
+  const locationDisplay = typeof issue.location === 'string' 
+    ? issue.location 
+    : issue.location?.address || "Unknown location";
+
   return (
     <Link to={`/issues/${issue.id}`}>
-      <div className="report-card">
+      <div className="report-card border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="aspect-w-16 aspect-h-9 bg-gray-200">
           {issue.images && issue.images.length > 0 ? (
             <img 
@@ -44,13 +58,13 @@ const IssueCard = ({ issue }: IssueCardProps) => {
 
           <div className="mt-2 flex items-center text-sm text-gray-500">
             <MapPin className="h-4 w-4 mr-1" />
-            <span className="truncate">{issue.location.address}</span>
+            <span className="truncate">{locationDisplay}</span>
           </div>
           
           <div className="mt-2 flex items-center text-sm text-gray-500">
             <Clock className="h-4 w-4 mr-1" />
             <span>
-              Reported: {isNaN(new Date(issue.reportedAt).getTime()) ? "Invalid date" : format(new Date(issue.reportedAt), 'MMM d, yyyy')}
+              Reported: {formatDate(issue.reportedAt)}
             </span>
           </div>
 
@@ -71,10 +85,12 @@ const IssueCard = ({ issue }: IssueCardProps) => {
 
           <div className="mt-4 flex justify-between items-center text-sm">
             <span className="text-gray-500">Duration: {issue.duration}</span>
-            <div className="flex items-center text-gray-500">
-              <ThumbsUp className="h-4 w-4 mr-1" />
-              <span>{issue.upvotes}</span>
-            </div>
+            {issue.upvotes !== undefined && (
+              <div className="flex items-center text-gray-500">
+                <ThumbsUp className="h-4 w-4 mr-1" />
+                <span>{issue.upvotes}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

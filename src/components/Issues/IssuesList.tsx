@@ -9,6 +9,8 @@ import { categoryOptions, statusOptions, priorityOptions, mockIssues } from "@/d
 import { indianStates, districtsByState, citiesByDistrict, villagesByDistrict } from "@/data/indiaLocations";
 import { IndianState } from "@/types/location";
 import { MapPin } from "lucide-react";
+import { onValue, ref } from "firebase/database"; // Add Firebase imports
+import { db } from "@/lib/utils"; // Import Firebase db
 
 const IssuesList = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -64,7 +66,7 @@ const IssuesList = () => {
               reportedAt: new Date(issueData.timestamp || Date.now()),
               images: issueData.image ? [issueData.image] : [],
               duration: issueData.duration || '',
-              upvotes: 0,
+              upvotes: issueData.upvotes || 0, // Make sure to get upvotes from Firebase
               comments: []
             };
           });
@@ -84,6 +86,38 @@ const IssuesList = () => {
 
     fetchIssues();
   }, []);
+
+  // Add a real-time listener for upvotes changes in Firebase
+  useEffect(() => {
+    // Only set up listeners if issues are loaded
+    if (issues.length === 0 || loading) return;
+    
+    // Get all Firebase issue IDs (not mock issues)
+    const firebaseIssueIds = issues
+      .filter(issue => !mockIssues.some(mockIssue => mockIssue.id === issue.id))
+      .map(issue => issue.id);
+    
+    // Set up listeners for each Firebase issue
+    const unsubscribers = firebaseIssueIds.map(issueId => {
+      const upvotesRef = ref(db, `issues/${issueId}/upvotes`);
+      
+      return onValue(upvotesRef, (snapshot) => {
+        const newUpvotes = snapshot.val() || 0;
+        
+        // Update the specific issue's upvotes
+        setIssues(prevIssues => 
+          prevIssues.map(issue => 
+            issue.id === issueId ? { ...issue, upvotes: newUpvotes } : issue
+          )
+        );
+      });
+    });
+    
+    // Clean up listeners on unmount
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
+  }, [issues, loading]);
 
   // Update available districts when state changes
   useEffect(() => {
