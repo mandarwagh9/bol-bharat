@@ -12,7 +12,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bolbharat-a24dc", // Fallback value
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1040076076256:web:1b4a233f9a7bb9573ccc85", // Fallback value
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
