@@ -12,27 +12,30 @@ import ReportPage from "./pages/ReportPage";
 import MapPage from "./pages/MapPage";
 import AboutPage from "./pages/AboutPage";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/issues" element={<IssuesPage />} />
-          <Route path="/issues/:id" element={<IssueDetail />} />
-          <Route path="/report" element={<ReportPage />} />
-          <Route path="/map" element={<MapPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/issues" element={<IssuesPage />} />
+            <Route path="/issues/:id" element={<IssueDetail />} />
+            <Route path="/report" element={<ReportPage />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

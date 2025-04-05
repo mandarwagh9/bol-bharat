@@ -13,7 +13,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-2">
             <MapPin className="h-6 w-6 text-civic-teal" />
-            <span className="text-xl font-bold text-civic-dark">StreetScribe</span>
+            <span className="text-xl font-bold text-civic-dark">BOL BHARAT</span>
           </Link>
           
           <div className="hidden md:flex items-center space-x-6">
