@@ -1,10 +1,11 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/Layout/PageLayout";
 import IssueCard from "@/components/Issues/IssueCard";
 import { fetchIssues } from "@/data/mockData";
-import { MapPin, Camera, Clock, ArrowRight, Map } from "lucide-react";
+import { MapPin, Camera, Clock, ArrowRight, Map, AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Issue } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,16 +13,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 const Index = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const getIssues = async () => {
       try {
         setLoading(true);
+        setError(null);
         const fetchedIssues = await fetchIssues();
         
         // Convert fetched issues to match our Issue type
         const formattedIssues = fetchedIssues.map((issue: any, index: number) => {
-          const id = issue.id || Object.keys(fetchedIssues)[index];
+          const id = issue.id || `issue-${index}`;
           
           // Properly handle image paths
           let imagePaths: string[] = [];
@@ -35,15 +38,19 @@ const Index = () => {
           
           return {
             id: id,
-            title: issue.title,
-            description: issue.description,
-            category: issue.category,
+            title: issue.title || "Untitled Issue",
+            description: issue.description || "No description provided",
+            category: issue.category || "other",
             status: issue.status || "reported", // Default status
             priority: issue.priority || "medium", // Default priority
             location: {
               lat: 0, // Default coordinates
               lng: 0,
-              address: issue.location
+              address: issue.location || "Unknown location",
+              state: "Unknown",
+              district: "Unknown",
+              city: "Unknown",
+              village: ""
             },
             reportedBy: issue.reportedBy || "anonymous",
             reportedAt: new Date(issue.timestamp || Date.now()),
@@ -58,6 +65,9 @@ const Index = () => {
         setIssues(formattedIssues);
       } catch (error) {
         console.error("Error fetching issues:", error);
+        setError("Failed to load issues. Please try again later.");
+        // Set empty array to prevent undefined issues
+        setIssues([]);
       } finally {
         setLoading(false);
       }
@@ -200,11 +210,18 @@ const Index = () => {
             </Button>
           </div>
 
+          {error && (
+            <div className="text-center p-6 bg-red-50 rounded-lg mb-6">
+              <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {loading ? (
-              // Loading skeletons
+              // Loading skeletons - make sure these are rendered
               Array(3).fill(0).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
+                <Card key={`skeleton-${i}`} className="overflow-hidden">
                   <Skeleton className="h-48 w-full" />
                   <CardContent className="p-4">
                     <Skeleton className="h-6 w-3/4 mb-2" />
