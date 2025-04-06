@@ -5,53 +5,55 @@ import IssueCard from "./IssueCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categoryOptions, statusOptions, priorityOptions, mockIssues } from "@/data/mockData";
+import { categoryOptions, statusOptions, priorityOptions } from "@/data/mockData";
 import { indianStates, districtsByState, citiesByDistrict, villagesByDistrict } from "@/data/indiaLocations";
 import { IndianState } from "@/types/location";
 import { MapPin } from "lucide-react";
-import { onValue, ref } from "firebase/database"; // Add Firebase imports
+import { onValue, ref, get } from "firebase/database"; // Add Firebase imports
 import { db } from "@/lib/utils"; // Import Firebase db
 
 const IssuesList = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<IssueCategory | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<IssueStatus | "all">("all");
-  const [priorityFilter, setPriorityFilter] = useState<IssuePriority | "all">("all");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "upvotes">("newest");
-
-  // Location filters
-  const [stateFilter, setStateFilter] = useState<IndianState | "all">("all");
-  const [districtFilter, setDistrictFilter] = useState<string | "all">("all");
-  const [cityFilter, setCityFilter] = useState<string | "all">("all");
-  const [villageFilter, setVillageFilter] = useState<string | "all">("all");
-  
-  // Available districts based on selected state
+  const [categoryFilter, setCategoryFilter] = useState<"all" | IssueCategory>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | IssueStatus>("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | IssuePriority>("all");
+  const [stateFilter, setStateFilter] = useState<"all" | IndianState>("all");
+  const [districtFilter, setDistrictFilter] = useState<"all" | string>("all");
+  const [cityFilter, setCityFilter] = useState<"all" | string>("all");
+  const [villageFilter, setVillageFilter] = useState<"all" | string>("all");
   const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [availableVillages, setAvailableVillages] = useState<string[]>([]);
-
   const navigate = useNavigate();
 
+  // Fetch issues from Firebase on component mount
   useEffect(() => {
     const fetchIssues = async () => {
+      setLoading(true);
+      
       try {
-        // Fetch real data from Firebase
-        const response = await fetch('https://bolbharat-a24dc-default-rtdb.firebaseio.com/issues.json');
-        const data = await response.json();
+        // Get the Firebase issues
+        const issuesRef = ref(db, "issues");
         
-        // Process real data
+        if (!db) {
+          throw new Error("Firebase database is not initialized");
+        }
+        
+        const snapshot = await get(issuesRef);
         let formattedIssues: Issue[] = [];
-        if (data) {
+        
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          
           formattedIssues = Object.entries(data).map(([id, issueData]: [string, any]) => {
-            // Determine state based on location string
-            let state: IndianState = "Unknown";
+            // Extract location data
             const location = issueData.location || '';
             
-            if (location.includes("Baramati") || location.includes("Pune")) {
-              state = "Maharashtra";
-            } else if (location.includes("Mumbai")) {
+            // Convert to valid IndianState type
+            let state: IndianState = "Unknown";
+            if (location.includes("Maharashtra") || location.toLowerCase().includes("maharashtra")) {
               state = "Maharashtra";
             }
             
@@ -80,19 +82,18 @@ const IssuesList = () => {
               reportedAt: new Date(issueData.timestamp || Date.now()),
               images: issueData.image ? [issueData.image] : [],
               duration: issueData.duration || '',
-              upvotes: issueData.upvotes || 0, // Make sure to get upvotes from Firebase
+              upvotes: issueData.upvotes || 0,
               comments: []
             };
           });
         }
         
-        // Add mock data to the list
-        const combinedIssues = [...formattedIssues, ...mockIssues];
-        setIssues(combinedIssues);
+        // Only set real data from Firebase, don't include mock data
+        setIssues(formattedIssues);
       } catch (error) {
         console.error('Error fetching issues:', error);
-        // If fetch fails, at least show mock data
-        setIssues(mockIssues);
+        // Show an empty list if there's an error
+        setIssues([]);
       } finally {
         setLoading(false);
       }
@@ -103,13 +104,11 @@ const IssuesList = () => {
 
   // Add a real-time listener for upvotes changes in Firebase
   useEffect(() => {
-    // Only set up listeners if issues are loaded
-    if (issues.length === 0 || loading) return;
+    // Only set up listeners if issues are loaded and db is initialized
+    if (issues.length === 0 || loading || !db) return;
     
-    // Get all Firebase issue IDs (not mock issues)
-    const firebaseIssueIds = issues
-      .filter(issue => !mockIssues.some(mockIssue => mockIssue.id === issue.id))
-      .map(issue => issue.id);
+    // Get all Firebase issue IDs
+    const firebaseIssueIds = issues.map(issue => issue.id);
     
     // Set up listeners for each Firebase issue
     const unsubscribers = firebaseIssueIds.map(issueId => {
@@ -124,12 +123,14 @@ const IssuesList = () => {
             issue.id === issueId ? { ...issue, upvotes: newUpvotes } : issue
           )
         );
+      }, (error) => {
+        console.error(`Error listening to upvotes for issue ${issueId}:`, error);
       });
     });
     
     // Clean up listeners on unmount
     return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe());
+      unsubscribers.forEach(unsubscribe => unsubscribe && unsubscribe());
     };
   }, [issues, loading]);
 
@@ -169,67 +170,50 @@ const IssuesList = () => {
     }
   }, [districtFilter]);
 
-  const filteredIssues = issues.filter(issue => {
-    const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  // Apply all filters
+  const filteredIssues = issues.filter((issue) => {
+    const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           issue.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || issue.category === categoryFilter;
     const matchesStatus = statusFilter === "all" || issue.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || issue.priority === priorityFilter;
-    
-    // Location filtering
     const matchesState = stateFilter === "all" || issue.location.state === stateFilter;
     const matchesDistrict = districtFilter === "all" || issue.location.district === districtFilter;
     const matchesCity = cityFilter === "all" || issue.location.city === cityFilter;
     const matchesVillage = villageFilter === "all" || issue.location.village === villageFilter;
     
-    return matchesSearch && matchesCategory && matchesStatus && matchesPriority && 
+    return matchesSearch && matchesCategory && matchesStatus && matchesPriority &&
            matchesState && matchesDistrict && matchesCity && matchesVillage;
   });
 
-  const sortedIssues = [...filteredIssues].sort((a, b) => {
-    if (sortBy === "newest") {
-      return new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime();
-    } else if (sortBy === "oldest") {
-      return new Date(a.reportedAt).getTime() - new Date(b.reportedAt).getTime();
-    } else {
-      return b.upvotes - a.upvotes;
-    }
-  });
-
-  const handleIssueClick = (id: string) => {
-    const issueExists = issues.some((issue) => issue.id === id);
-    if (!issueExists) {
-      alert('The issue has been deleted.');
-    } else {
-      navigate(`/issues/${id}`);
-    }
+  // Navigate to issue details
+  const handleIssueClick = (issueId: string) => {
+    navigate(`/issues/${issueId}`);
   };
 
-  if (loading) {
-    return <div className="text-center py-12">Loading issues...</div>;
-  }
-
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-        <div className="md:col-span-3 lg:col-span-4">
-          <Label htmlFor="search">Search</Label>
+    <div className="space-y-6">
+      {/* Filters section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Search filter */}
+        <div className="space-y-2">
+          <Label htmlFor="search">Search Issues</Label>
           <Input
             id="search"
-            placeholder="Search issues..."
+            placeholder="Search by title or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
           />
         </div>
         
-        <div>
+        {/* Category filter */}
+        <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
           <Select
             value={categoryFilter}
-            onValueChange={(value) => setCategoryFilter(value as IssueCategory | "all")}
+            onValueChange={(value) => setCategoryFilter(value as "all" | IssueCategory)}
           >
-            <SelectTrigger id="category">
+            <SelectTrigger>
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -243,13 +227,14 @@ const IssuesList = () => {
           </Select>
         </div>
         
-        <div>
+        {/* Status filter */}
+        <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as IssueStatus | "all")}
+            onValueChange={(value) => setStatusFilter(value as "all" | IssueStatus)}
           >
-            <SelectTrigger id="status">
+            <SelectTrigger>
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -263,13 +248,14 @@ const IssuesList = () => {
           </Select>
         </div>
         
-        <div>
+        {/* Priority filter */}
+        <div className="space-y-2">
           <Label htmlFor="priority">Priority</Label>
           <Select
             value={priorityFilter}
-            onValueChange={(value) => setPriorityFilter(value as IssuePriority | "all")}
+            onValueChange={(value) => setPriorityFilter(value as "all" | IssuePriority)}
           >
-            <SelectTrigger id="priority">
+            <SelectTrigger>
               <SelectValue placeholder="All Priorities" />
             </SelectTrigger>
             <SelectContent>
@@ -282,132 +268,115 @@ const IssuesList = () => {
             </SelectContent>
           </Select>
         </div>
-        
-        <div>
-          <Label htmlFor="sort">Sort By</Label>
+      </div>
+      
+      {/* Location filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1">
+            <MapPin className="h-4 w-4" />
+            State
+          </Label>
           <Select
-            value={sortBy}
-            onValueChange={(value) => setSortBy(value as "newest" | "oldest" | "upvotes")}
+            value={stateFilter}
+            onValueChange={(value) => setStateFilter(value as "all" | IndianState)}
           >
-            <SelectTrigger id="sort">
-              <SelectValue placeholder="Sort By" />
+            <SelectTrigger>
+              <SelectValue placeholder="All States" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-              <SelectItem value="upvotes">Most Upvotes</SelectItem>
+              <SelectItem value="all">All States</SelectItem>
+              {indianStates.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>District</Label>
+          <Select
+            value={districtFilter}
+            onValueChange={setDistrictFilter}
+            disabled={stateFilter === "all"}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Districts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Districts</SelectItem>
+              {availableDistricts.map((district) => (
+                <SelectItem key={district} value={district}>
+                  {district}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>City</Label>
+          <Select
+            value={cityFilter}
+            onValueChange={setCityFilter}
+            disabled={districtFilter === "all"}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Cities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Cities</SelectItem>
+              {availableCities.map((city) => (
+                <SelectItem key={city} value={city}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Village</Label>
+          <Select
+            value={villageFilter}
+            onValueChange={setVillageFilter}
+            disabled={districtFilter === "all"}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Villages" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Villages</SelectItem>
+              {availableVillages.map((village) => (
+                <SelectItem key={village} value={village}>
+                  {village}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
       
-      {/* Location filters section */}
-      <div className="bg-[#FFF5E6] p-4 rounded-lg mb-6">
-        <div className="flex items-center mb-4">
-          <MapPin className="h-5 w-5 text-[#FF7722] mr-2" />
-          <h3 className="text-lg font-semibold text-[#1E3A4F]">Location Filters</h3>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="state">State</Label>
-            <Select
-              value={stateFilter}
-              onValueChange={(value) => setStateFilter(value as IndianState | "all")}
-            >
-              <SelectTrigger id="state">
-                <SelectValue placeholder="All States" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All States</SelectItem>
-                {indianStates.map((state) => (
-                  <SelectItem key={state.value} value={state.value}>
-                    {state.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Results section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {loading ? (
+          Array(6).fill(0).map((_, index) => (
+            <div key={index} className="rounded-lg border bg-card text-card-foreground shadow-sm h-[300px] animate-pulse" />
+          ))
+        ) : filteredIssues.length === 0 ? (
+          <div className="col-span-full text-center py-10 text-muted-foreground">
+            No issues found matching your filters. Try adjusting your search criteria.
           </div>
-          
-          <div>
-            <Label htmlFor="district">District</Label>
-            <Select
-              value={districtFilter}
-              onValueChange={(value) => setDistrictFilter(value)}
-              disabled={stateFilter === "all"}
-            >
-              <SelectTrigger id="district">
-                <SelectValue placeholder={stateFilter === "all" ? "Select State First" : "All Districts"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Districts</SelectItem>
-                {availableDistricts.map((district) => (
-                  <SelectItem key={district} value={district}>
-                    {district}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Select
-              value={cityFilter}
-              onValueChange={(value) => setCityFilter(value)}
-              disabled={districtFilter === "all" || availableCities.length === 0}
-            >
-              <SelectTrigger id="city">
-                <SelectValue placeholder={districtFilter === "all" ? "Select District First" : "All Cities"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Cities</SelectItem>
-                {availableCities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="village">Village</Label>
-            <Select
-              value={villageFilter}
-              onValueChange={(value) => setVillageFilter(value)}
-              disabled={districtFilter === "all" || availableVillages.length === 0}
-            >
-              <SelectTrigger id="village">
-                <SelectValue placeholder={districtFilter === "all" ? "Select District First" : "All Villages"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Villages</SelectItem>
-                {availableVillages.map((village) => (
-                  <SelectItem key={village} value={village}>
-                    {village}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      {sortedIssues.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-semibold text-gray-600">No issues found</h3>
-          <p className="text-gray-500 mt-2">Try adjusting your filters or search terms</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedIssues.map((issue) => (
+        ) : (
+          filteredIssues.map((issue) => (
             <div key={issue.id} onClick={() => handleIssueClick(issue.id)}>
               <IssueCard issue={issue} />
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };

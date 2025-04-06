@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import PageLayout from "@/components/Layout/PageLayout";
 import IssueCard from "@/components/Issues/IssueCard";
 import { fetchIssues } from "@/data/mockData";
-import { MapPin, Camera, Clock, ArrowRight } from "lucide-react";
+import { MapPin, Camera, Clock, ArrowRight, Map } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Issue } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +22,17 @@ const Index = () => {
         // Convert fetched issues to match our Issue type
         const formattedIssues = fetchedIssues.map((issue: any, index: number) => {
           const id = issue.id || Object.keys(fetchedIssues)[index];
+          
+          // Properly handle image paths
+          let imagePaths: string[] = [];
+          if (issue.image) {
+            // Check if image path already has the correct format
+            const imagePath = issue.image.startsWith('/') ? issue.image : `/${issue.image}`;
+            imagePaths = [imagePath];
+          } else {
+            imagePaths = ["/placeholder.svg"];
+          }
+          
           return {
             id: id,
             title: issue.title,
@@ -36,14 +47,14 @@ const Index = () => {
             },
             reportedBy: issue.reportedBy || "anonymous",
             reportedAt: new Date(issue.timestamp || Date.now()),
-            // Fix image paths by removing the leading slash
-            images: issue.image ? [issue.image] : ["placeholder.svg"],
+            images: imagePaths,
             duration: issue.duration || "Unknown",
             upvotes: issue.upvotes || 0,
             comments: []
           };
         });
         
+        console.log("Formatted issues:", formattedIssues); // For debugging
         setIssues(formattedIssues);
       } catch (error) {
         console.error("Error fetching issues:", error);
@@ -140,6 +151,39 @@ const Index = () => {
               <Link to="/report" className="px-6">Report an Issue Now</Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Map Preview Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="civic-container">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">Issue Map</h2>
+            <Button asChild variant="outline" className="group border-civic-blue text-civic-blue hover:bg-civic-blue/10">
+              <Link to="/map" className="flex items-center">
+                View Full Map
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </div>
+          
+          <Card className="overflow-hidden border border-gray-200 shadow-md">
+            <div className="relative">
+              <div className="bg-gray-100 w-full h-[300px] flex items-center justify-center">
+                <Map className="h-12 w-12 text-gray-400 mb-2" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+                  <Button asChild size="lg" className="bg-civic-blue hover:bg-civic-blue/90 shadow-md">
+                    <Link to="/map">View Interactive Map</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-4">
+              <p className="text-gray-600">
+                Explore reported issues across your community. The interactive map helps you see problem areas and track resolution progress.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
