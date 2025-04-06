@@ -9,6 +9,7 @@ import { MapPin, Camera, Clock, ArrowRight, Map, AlertCircle } from "lucide-reac
 import { useEffect, useState } from "react";
 import { Issue } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { IndianState } from "@/types/location";
 
 const Index = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -36,6 +37,19 @@ const Index = () => {
             imagePaths = ["/placeholder.svg"];
           }
           
+          // Determine the state from location or default to "Unknown" (which is a valid IndianState)
+          let state: IndianState = "Unknown";
+          if (issue.location) {
+            if (issue.location.includes("Mumbai") || issue.location.includes("Pune") || issue.location.includes("Baramati")) {
+              state = "Maharashtra";
+            } else if (issue.location.includes("Delhi")) {
+              state = "Delhi";
+            } else if (issue.location.includes("Bangalore") || issue.location.includes("Bengaluru")) {
+              state = "Karnataka";
+            }
+            // Additional state detection can be added here
+          }
+          
           return {
             id: id,
             title: issue.title || "Untitled Issue",
@@ -47,7 +61,7 @@ const Index = () => {
               lat: 0, // Default coordinates
               lng: 0,
               address: issue.location || "Unknown location",
-              state: "Unknown",
+              state: state, // Using the determined state which is of type IndianState
               district: "Unknown",
               city: "Unknown",
               village: ""
