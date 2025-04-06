@@ -18,7 +18,7 @@ const firebaseConfig = {
 
 // Validate that we have required Firebase config parameters
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
-  console.error("Missing required Firebase configuration. Check your environment variables.");
+  throw new Error("Missing required Firebase configuration. Check your environment variables.");
 }
 
 let app, analytics, db;
