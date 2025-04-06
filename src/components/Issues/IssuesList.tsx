@@ -12,8 +12,8 @@ import { MapPin } from "lucide-react";
 import { onValue, ref, get } from "firebase/database"; // Add Firebase imports
 import { db } from "@/lib/utils"; // Import Firebase db
 
-const IssuesList = () => {
-  const [issues, setIssues] = useState<Issue[]>([]);
+const IssuesList = ({ issues: propIssues }: { issues?: Issue[] }) => {
+  const [issues, setIssues] = useState<Issue[]>(propIssues || []);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | IssueCategory>("all");
@@ -30,77 +30,79 @@ const IssuesList = () => {
 
   // Fetch issues from Firebase on component mount
   useEffect(() => {
-    const fetchIssues = async () => {
-      setLoading(true);
-      
-      try {
-        // Get the Firebase issues
-        const issuesRef = ref(db, "issues");
+    if (!propIssues) {
+      const fetchIssues = async () => {
+        setLoading(true);
         
-        if (!db) {
-          throw new Error("Firebase database is not initialized");
-        }
-        
-        const snapshot = await get(issuesRef);
-        let formattedIssues: Issue[] = [];
-        
-        if (snapshot.exists()) {
-          const data = snapshot.val();
+        try {
+          // Get the Firebase issues
+          const issuesRef = ref(db, "issues");
           
-          formattedIssues = Object.entries(data).map(([id, issueData]: [string, any]) => {
-            // Extract location data
-            const location = issueData.location || '';
+          if (!db) {
+            throw new Error("Firebase database is not initialized");
+          }
+          
+          const snapshot = await get(issuesRef);
+          let formattedIssues: Issue[] = [];
+          
+          if (snapshot.exists()) {
+            const data = snapshot.val();
             
-            // Convert to valid IndianState type
-            let state: IndianState = "Unknown";
-            if (location.includes("Maharashtra") || location.toLowerCase().includes("maharashtra")) {
-              state = "Maharashtra";
-            }
-            
-            // Convert Firebase format to our app format
-            return {
-              id,
-              title: issueData.title || '',
-              description: issueData.description || '',
-              category: issueData.category || 'other',
-              status: issueData.status || 'reported',
-              priority: issueData.priority || 'medium',
-              location: {
-                lat: 0,
-                lng: 0,
-                address: location,
-                state: state,
-                district: location.includes("Baramati") ? "Pune" : 
-                         location.includes("Pune") ? "Pune" : 
-                         location.includes("Mumbai") ? "Mumbai" : "",
-                city: location.includes("Baramati") ? "Baramati" : 
-                      location.includes("Pune") ? "Pune" : 
-                      location.includes("Mumbai") ? "Mumbai" : "",
-                village: ""
-              },
-              reportedBy: 'user1',
-              reportedAt: new Date(issueData.timestamp || Date.now()),
-              images: issueData.image ? [issueData.image] : [],
-              duration: issueData.duration || '',
-              upvotes: issueData.upvotes || 0,
-              comments: []
-            };
-          });
+            formattedIssues = Object.entries(data).map(([id, issueData]: [string, any]) => {
+              // Extract location data
+              const location = issueData.location || '';
+              
+              // Convert to valid IndianState type
+              let state: IndianState = "Unknown";
+              if (location.includes("Maharashtra") || location.toLowerCase().includes("maharashtra")) {
+                state = "Maharashtra";
+              }
+              
+              // Convert Firebase format to our app format
+              return {
+                id,
+                title: issueData.title || '',
+                description: issueData.description || '',
+                category: issueData.category || 'other',
+                status: issueData.status || 'reported',
+                priority: issueData.priority || 'medium',
+                location: {
+                  lat: 0,
+                  lng: 0,
+                  address: location,
+                  state: state,
+                  district: location.includes("Baramati") ? "Pune" : 
+                           location.includes("Pune") ? "Pune" : 
+                           location.includes("Mumbai") ? "Mumbai" : "",
+                  city: location.includes("Baramati") ? "Baramati" : 
+                        location.includes("Pune") ? "Pune" : 
+                        location.includes("Mumbai") ? "Mumbai" : "",
+                  village: ""
+                },
+                reportedBy: 'user1',
+                reportedAt: new Date(issueData.timestamp || Date.now()),
+                images: issueData.image ? [issueData.image] : [],
+                duration: issueData.duration || '',
+                upvotes: issueData.upvotes || 0,
+                comments: []
+              };
+            });
+          }
+          
+          // Only set real data from Firebase, don't include mock data
+          setIssues(formattedIssues);
+        } catch (error) {
+          console.error('Error fetching issues:', error);
+          // Show an empty list if there's an error
+          setIssues([]);
+        } finally {
+          setLoading(false);
         }
-        
-        // Only set real data from Firebase, don't include mock data
-        setIssues(formattedIssues);
-      } catch (error) {
-        console.error('Error fetching issues:', error);
-        // Show an empty list if there's an error
-        setIssues([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchIssues();
-  }, []);
+      fetchIssues();
+    }
+  }, [propIssues]);
 
   // Add a real-time listener for upvotes changes in Firebase
   useEffect(() => {
