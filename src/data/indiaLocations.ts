@@ -1,4 +1,3 @@
-
 import { IndianState } from '@/types/location';
 
 export const indianStates: { value: IndianState; label: string }[] = [
@@ -38,16 +37,15 @@ export const indianStates: { value: IndianState; label: string }[] = [
   { value: 'Ladakh', label: 'Ladakh' },
   { value: 'Lakshadweep', label: 'Lakshadweep' },
   { value: 'Puducherry', label: 'Puducherry' },
+  { value: 'Unknown', label: 'Unknown' },
 ];
 
-// Sample district data for a few states
 export const districtsByState: Record<IndianState, string[]> = {
   'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik', 'Aurangabad'],
   'Delhi': ['Central Delhi', 'East Delhi', 'New Delhi', 'North Delhi', 'South Delhi', 'West Delhi'],
   'Karnataka': ['Bangalore Urban', 'Mysore', 'Hubli-Dharwad', 'Mangalore', 'Belgaum'],
   'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem'],
   'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Ghaziabad', 'Agra', 'Varanasi', 'Meerut'],
-  // Add placeholder arrays for the remaining states
   'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Nellore'],
   'Arunachal Pradesh': ['Itanagar', 'Pasighat', 'Tawang'],
   'Assam': ['Guwahati', 'Silchar', 'Dibrugarh'],
@@ -79,22 +77,21 @@ export const districtsByState: Record<IndianState, string[]> = {
   'Ladakh': ['Leh', 'Kargil'],
   'Lakshadweep': ['Kavaratti', 'Agatti', 'Amini'],
   'Puducherry': ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'],
+  'Unknown': ['Unknown'],
 };
 
-// Sample cities by district for a few districts
 export const citiesByDistrict: Record<string, string[]> = {
   'Mumbai': ['Mumbai City', 'Mumbai Suburban', 'Thane', 'Navi Mumbai'],
   'Pune': ['Pune City', 'Pimpri-Chinchwad', 'Lonavala'],
   'Bangalore Urban': ['Bengaluru', 'Electronic City', 'Whitefield'],
   'Chennai': ['Chennai Central', 'T. Nagar', 'Adyar', 'Anna Nagar'],
   'Lucknow': ['Hazratganj', 'Gomti Nagar', 'Aliganj'],
-  // Add more as needed
+  'Unknown': ['Unknown'],
 };
 
-// Sample villages by district for a few districts
 export const villagesByDistrict: Record<string, string[]> = {
   'Pune': ['Velhe', 'Bhor', 'Maval', 'Mulshi'],
   'Bangalore Urban': ['Hesaraghatta', 'Attibele', 'Jigani'],
   'Chennai': ['Muttukadu', 'Kovalam', 'Sholinganallur'],
-  // Add more as needed
+  'Unknown': ['Unknown'],
 };
